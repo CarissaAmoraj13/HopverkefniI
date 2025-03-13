@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  role     String  // "user" or "admin"
+  tasks    Task[]
+  settings UserSettings?
+}
+
+model Task {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+  status      String  @default("incomplete")
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  String?
+  tags        TaskTag[]
+}
+
+model Category {
+  id    String  @id @default(uuid())
+  name  String  @unique
+  tasks Task[]
+}
+
+model Tag {
+  id    String  @id @default(uuid())
+  name  String  @unique
+  taskTags TaskTag[]
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+  task   Task @relation(fields: [taskId], references: [id])
+  tag    Tag  @relation(fields: [tagId], references: [id])
+  @@id([taskId, tagId])
+}
+
+model UserSettings {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  user      User   @relation(fields: [userId], references: [id])
+  darkMode  Boolean @default(false)
+  language  String  @default("en")
+}
+
